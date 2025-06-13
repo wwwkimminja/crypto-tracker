@@ -1,8 +1,9 @@
 import styled, { ThemeProvider } from 'styled-components';
-import { useRecoilState } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
+import { Link } from 'react-router-dom';
 import { isDarkModeState } from '../atoms/theme';
-import { lightTheme, darkTheme } from '../styles/theme';
-import { fetchCoins } from '../api';
+import { lightTheme, darkTheme } from '../theme';
+import { fetchCoins, getCoinImageUrl, getFallbackImageUrl } from '../api';
 import { useQuery } from '@tanstack/react-query';
 import LoadingSpinner from '../components/Spinner';
 
@@ -15,6 +16,13 @@ const Container = styled.div`
   color: ${props => props.theme.textColor};
   transition: all 0.3s ease;
 `;
+const Header = styled.header`
+  height: 15vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+`;
 
 const Title = styled.h1`
   font-size: 2.5rem;
@@ -24,19 +32,21 @@ const Title = styled.h1`
 `;
 
 const ToggleButton = styled.button`
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  border: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
   background-color: ${props => props.theme.buttonColor};
   color: ${props => props.theme.textColor};
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+  z-index: 100;
+
   &:hover {
-    opacity: 0.8;
+    background-color: ${props => props.theme.hoverColor};
   }
 `;
 
@@ -49,7 +59,6 @@ const CoinList = styled.ul`
 
 const CoinItem = styled.li`
   background-color: ${props => props.theme.buttonColor};
-  padding: 1rem;
   margin-bottom: 1rem;
   border-radius: 10px;
   display: flex;
@@ -62,14 +71,24 @@ const CoinItem = styled.li`
   }
 `;
 
+const StyledLink = styled(Link)`
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  text-decoration: none;
+  color: ${props => props.theme.textColor};
+`;
+
 const CoinIcon = styled.img`
   width: 30px;
   height: 30px;
+  margin-right: 10px;
+  object-fit: contain;
 `;
 
 const CoinName = styled.span`
-  font-size: 1.1rem;
-  font-weight: 500;
+  font-size: 18px;
+  font-weight: 600;
 `;
 
 interface ICoin {
@@ -86,7 +105,7 @@ const Coins = () => {
   const [isDarkMode, setIsDarkMode] = useRecoilState(isDarkModeState);
 
   const { isLoading, data, error } = useQuery<ICoin[]>({
-    queryKey: ['allCoins'],
+    queryKey: ['coins'],
     queryFn: fetchCoins
   });
 
@@ -98,30 +117,38 @@ const Coins = () => {
     setIsDarkMode(prev => !prev);
   };
 
+  if (isLoading) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <Container>
-        <Title>Crypto Coins</Title>
-        <ToggleButton onClick={toggleTheme}>
-          {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
-        </ToggleButton>
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : error ? (
+        <Header>
+          <Title>Crypto Coins</Title>
+          <ToggleButton onClick={toggleTheme}>
+            {isDarkMode ? '🌞 Light Mode' : '🌙 Dark Mode'}
+          </ToggleButton>
+        </Header>
+        {error ? (
           <div>Error: {error.message}</div>
         ) : (
           <CoinList>
             {data?.slice(0, 100).map((coin) => (
-              <CoinItem key={coin.id}>
-                <CoinIcon 
-                  src={`https://cryptocurrencyliveprices.com/img/${coin.id}.png`}
-                  alt={coin.name}
-                  onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/30';
-                  }}
-                />
-                <CoinName>{coin.name}</CoinName>
-              </CoinItem>
+             
+                <CoinItem>
+                   <StyledLink to={`/${coin.id}`} key={coin.id}>
+                  <CoinIcon 
+                    src={getCoinImageUrl(coin.symbol)}
+                    alt={coin.name}
+                    onError={(e) => {
+                      e.currentTarget.src = getFallbackImageUrl();
+                    }}
+                  />
+                  <CoinName>{coin.name}</CoinName>
+                  </StyledLink>
+                </CoinItem>
+             
             ))}
           </CoinList>
         )}
