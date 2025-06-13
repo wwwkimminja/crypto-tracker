@@ -6,6 +6,9 @@ import { isDarkModeState } from '../atoms/theme';
 import { lightTheme, darkTheme } from '../theme';
 import { fetchCoinInfo, getCoinImageUrl, getFallbackImageUrl } from '../api';
 import type { ICoinDetail, IPriceData } from '../api';
+import { useState } from 'react';
+import Chart from '../components/Chart';
+import Price from '../components/Price';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -107,6 +110,43 @@ const Description = styled.div`
   max-width: 760px;
 `;
 
+const DescriptionTitle = styled.h2`
+  font-size: 1.5rem;
+  color: ${props => props.theme.textColor};
+  margin-bottom: 1rem;
+  text-align: center;
+`;
+
+const TabContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  max-width: 800px;
+  margin: 20px auto;
+  gap: 20px;
+`;
+
+const Tab = styled.div<{ isActive: boolean }>`
+  flex: 1;
+  background-color: ${props => props.theme.buttonColor};
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: ${props => props.theme.cardShadow};
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease-in-out;
+  color: ${props => props.theme.textColor};
+  font-weight: ${props => props.isActive ? '600' : '400'};
+  border: 2px solid ${props => props.isActive ? props.theme.accentColor : 'transparent'};
+
+  &:hover {
+    background-color: ${props => props.theme.hoverColor};
+  }
+`;
+
+const TabContent = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
+`;
 
 function formatNumber(num: number | null | undefined): string {
   if (num === null || num === undefined || isNaN(num)) {
@@ -122,6 +162,7 @@ function formatNumber(num: number | null | undefined): string {
 function Coin() {
   const { coinId } = useParams<{ coinId: string }>();
   const isDarkMode = useRecoilValue(isDarkModeState);
+  const [activeTab, setActiveTab] = useState<'chart' | 'price'>('chart');
 
   const { isLoading, data, error } = useQuery<ICoinDetail & {
     price: number;
@@ -152,20 +193,19 @@ function Coin() {
   return (
     <ThemeProvider theme={isDarkMode ? darkTheme : lightTheme}>
       <Container>
+        <BackButton to="/">← Back to Coins</BackButton>
         <Header>
-          <BackButton to="/">
-            ← Back
-          </BackButton>
-          <CoinIcon 
-            src={getCoinImageUrl(data.symbol)}
-            alt={data.name}
-            onError={(e) => {
-              e.currentTarget.src = getFallbackImageUrl();
-            }}
-          />
-          <Title>{data.name}</Title>
+          <Title>
+            <CoinIcon 
+              src={getCoinImageUrl(data.symbol)}
+              alt={data.name}
+              onError={(e) => {
+                e.currentTarget.src = getFallbackImageUrl();
+              }}
+            />
+            {data.name}
+          </Title>
         </Header>
-
         <InfoGrid>
           <InfoItem>
             <InfoLabel>Rank</InfoLabel>
@@ -179,15 +219,29 @@ function Coin() {
             <InfoLabel>Price</InfoLabel>
             <InfoValue>${formatNumber(data.price)}</InfoValue>
           </InfoItem>
-
         </InfoGrid>
-
-        {data.description && (
-          <Description>
-            <InfoLabel>Description</InfoLabel>
-            <p>{data.description}</p>
-          </Description>
-        )}
+        <Description>
+          <DescriptionTitle>Description</DescriptionTitle>
+          <p>{data.description}</p>
+        </Description>
+        <TabContainer>
+          <Tab 
+            isActive={activeTab === 'chart'} 
+            onClick={() => setActiveTab('chart')}
+          >
+            Chart
+          </Tab>
+          <Tab 
+            isActive={activeTab === 'price'} 
+            onClick={() => setActiveTab('price')}
+          >
+            Price
+          </Tab>
+        </TabContainer>
+        <TabContent>
+          {activeTab === 'chart' && coinId && <Chart coinId={coinId} />}
+          {activeTab === 'price' && coinId && <Price coinId={coinId} />}
+        </TabContent>
       </Container>
     </ThemeProvider>
   );
