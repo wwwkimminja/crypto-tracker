@@ -1,5 +1,5 @@
 import styled, { ThemeProvider } from 'styled-components';
-import { useRecoilState, useRecoilValue } from 'recoil';
+import { useRecoilState } from 'recoil';
 import { Link } from 'react-router-dom';
 import { isDarkModeState } from '../atoms/theme';
 import { lightTheme, darkTheme } from '../theme';

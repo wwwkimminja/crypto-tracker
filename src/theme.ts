@@ -1,5 +1,3 @@
-import type { DefaultTheme } from 'styled-components';
-
 const theme = {
   lightTheme: {
     bgColor: '#f5f6fa',

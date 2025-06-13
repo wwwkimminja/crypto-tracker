@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchCoinHistory } from '../api';
-import type { IPriceData } from '../api';
 import styled from 'styled-components';
 import ApexChart from 'react-apexcharts';
 import { useRecoilValue } from 'recoil';

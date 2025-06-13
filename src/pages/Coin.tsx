@@ -1,11 +1,12 @@
-import { useParams, Link } from 'react-router-dom';
-import styled, { ThemeProvider } from 'styled-components';
-import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
+import { Link } from 'react-router-dom';
+import styled, { ThemeProvider } from 'styled-components';
 import { isDarkModeState } from '../atoms/theme';
 import { lightTheme, darkTheme } from '../theme';
+import { useQuery } from '@tanstack/react-query';
 import { fetchCoinInfo, getCoinImageUrl, getFallbackImageUrl } from '../api';
-import type { ICoinDetail, IPriceData } from '../api';
+import type { ICoinDetail } from '../api';
 import { useState } from 'react';
 import Chart from '../components/Chart';
 import Price from '../components/Price';
@@ -20,11 +21,7 @@ const Container = styled.div`
   transition: all 0.3s ease;
 `;
 
-const StyledLink = styled(Link)`
-  text-decoration: none;
-  color: inherit;
-  display: inline-block;
-`;
+
 
 const BackButton = styled(Link)`
   position: fixed;
